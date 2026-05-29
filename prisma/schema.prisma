@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Word {
+  id        Int      @id @default(autoincrement())
+  kanji     String?
+  kana      String
+  meaning   String
+  pos       String?
+  source    String   @default("user")
+  jlptLevel String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categories WordCategory[]
+  reviewLogs ReviewLog[]
+  quizResults QuizResult[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  type  String @default("custom")
+
+  words WordCategory[]
+}
+
+model WordCategory {
+  wordId     Int
+  categoryId Int
+  word       Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([wordId, categoryId])
+}
+
+model ReviewLog {
+  id             Int      @id @default(autoincrement())
+  wordId         Int
+  ease           Float    @default(2.5)
+  interval       Int      @default(0)
+  repetitions    Int      @default(0)
+  nextReviewDate DateTime
+  lastReviewDate DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+}
+
+model QuizResult {
+  id      Int      @id @default(autoincrement())
+  wordId  Int
+  correct Boolean
+  date    DateTime @default(now())
+
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+}
